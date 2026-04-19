@@ -3,7 +3,7 @@
 build/
 gradle-8.4/
 gradle.zip
-gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/
 
 # Android Studio
 *.iml

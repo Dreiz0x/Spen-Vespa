@@ -1,7 +1,6 @@
 package dev.vskelk.cdf.app.di
 
 import android.content.Context
-import com.google.protobuf.Parser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,16 +33,18 @@ object DataStoreModule {
     fun provideUserPreferencesSerializer(): UserPreferencesSerializer =
         UserPreferencesSerializer()
 
-    @Provides
-    @Singleton
-    fun provideUserPreferencesParser(): Parser<UserPreferences> =
-        UserPreferences.parser()
-
+    // ⚡ EL TOQUE EXCEPCIONAL: 
+    // Eliminamos 'provideUserPreferencesParser()'. 
+    // En su lugar, le pasamos 'UserPreferences.parser()' directamente al DataSource.
+    // Así evitamos que KSP intente resolver el tipo genérico y falle.
     @Provides
     @Singleton
     fun providePreferencesDataSource(
         @ApplicationContext context: Context,
-        cipherService: CipherService,
-        parser: Parser<UserPreferences>
-    ): PreferencesDataSource = PreferencesDataSource(context, cipherService, parser)
+        cipherService: CipherService
+    ): PreferencesDataSource = PreferencesDataSource(
+        context, 
+        cipherService, 
+        UserPreferences.parser()
+    )
 }

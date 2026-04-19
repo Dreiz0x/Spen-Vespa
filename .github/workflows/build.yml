@@ -26,22 +26,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      # 1. ELIMINAMOS el caché manual obsoleto.
+      # 2. USAMOS la acción oficial de Gradle: es más brillante y maneja el caché de forma nativa.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      # 3. AQUÍ ESTÁ TU MAGIA: Forzamos la creación del Wrapper 8.7 usando el motor base del runner.
+      - name: Force Gradle Wrapper 8.7
+        run: gradle wrapper --gradle-version 8.7
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
+      # 4. ELIMINAMOS setup-android@v3 porque 'ubuntu-latest' ya trae el SDK preinstalado. Cero fricción.
+      
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 

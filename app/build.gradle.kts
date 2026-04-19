@@ -47,10 +47,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -63,13 +59,21 @@ android {
     }
 }
 
+// Bloque moderno para las opciones de Kotlin (reemplaza al kotlinOptions deprecado)
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobufJava.get()}"
+        // Se le agregó el .toString() para evitar el error de "receiver type mismatch"
+        artifact = "com.google.protobuf:protoc:${libs.versions.protobufJava.get().toString()}"
     }
 
     generateProtoTasks {
@@ -143,4 +147,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+}
+
+// ⚡ EL CANDADO DE KSP: Obliga a KSP a esperar a que Protobuf termine de generar las clases
+tasks.withType<com.google.devtools.ksp.gradle.KspTaskJvm>().configureEach {
+    dependsOn(tasks.matching { it.name.startsWith("generate") && it.name.endsWith("Proto") })
 }

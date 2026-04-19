@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Vespa Theme - Dark mode ONLY per spec -->
+    <!-- No light mode - this is an absolute requirement -->
+
+    <style name="Theme.Vespa" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/vespa_background</item>
+        <item name="android:statusBarColor">@color/vespa_background</item>
+        <item name="android:navigationBarColor">@color/vespa_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

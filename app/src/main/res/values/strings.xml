@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App identification per spec -->
+    <string name="app_name">Vespa</string>
+    <string name="app_name_full">Vespa SPEN</string>
+
+    <!-- User identifier - per spec -->
+    <string name="user_name">Reydesel</string>
+    <string name="user_position">Técnico de Organización Electoral</string>
+    <string name="user_district">Distrito 06, Chihuahua</string>
+
+    <!-- Splash screen -->
+    <string name="splash_subtitle">SPEN · PREPARACIÓN INTEGRAL · v2.0</string>
+    <string name="splash_welcome">BIENVENIDO</string>
+    <string name="splash_start">COMENZAR</string>
+
+    <!-- Main screen -->
+    <string name="main_corpus_status">Corpus %1$s sincronizado</string>
+    <string name="main_pending_items">%1$d elementos pendientes</string>
+    <string name="main_offline_mode">Modo Offline</string>
+
+    <!-- Module names -->
+    <string name="module_simulator">Simulador</string>
+    <string name="module_diagnosis">Diagnóstico</string>
+    <string name="module_interview">Entrevista</string>
+
+    <!-- Module descriptions -->
+    <string name="module_simulator_desc">Practica con reactivos del SPE</string>
+    <string name="module_diagnosis_desc">Identifica tus brechas de conocimiento</string>
+    <string name="module_interview_desc">Prepara respuestas por competencias</string>
+
+    <!-- Progress labels -->
+    <string name="progress_general">Progreso general %1$d%%</string>
+    <string name="progress_corpus_updated">Corpus actualizado</string>
+    <string name="progress_gaps_detected">%1$d brechas detectadas</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_investigator">Investigador</string>
+    <string name="nav_settings">Configuración</string>
+
+    <!-- States -->
+    <string name="state_loading">Cargando…</string>
+    <string name="state_empty">Sin contenido disponible</string>
+    <string name="state_empty_investigator">Ve al Investigador para agregar contenido</string>
+    <string name="state_error">Error al cargar</string>
+    <string name="state_retry">Reintentar</string>
+
+    <!-- Simulator -->
+    <string name="simulator_question">Pregunta %1$d de %2$d</string>
+    <string name="simulator_correct">¡Correcto!</string>
+    <string name="simulator_incorrect">Incorrecto</string>
+    <string name="simulator_fundamento">Fundamento</string>
+    <string name="simulator_next">Siguiente</string>
+    <string name="simulator_finish">Finalizar</string>
+    <string name="simulator_results_title">Resultados</string>
+    <string name="simulator_results_correct">%1$d de %2$d correctas</string>
+
+    <!-- Diagnosis -->
+    <string name="diagnosis_title">Diagnóstico de Dominio</string>
+    <string name="diagnosis_weak_topics">Subtemas a fortalecer</string>
+    <string name="diagnosis_recommendation">Recomendación</string>
+
+    <!-- Interview -->
+    <string name="interview_title">Preparación por Competencias</string>
+    <string name="interview_situation">Situación</string>
+    <string name="interview_response_hint">Escribe tu respuesta…</string>
+    <string name="interview_evaluate">Evaluar</string>
+
+    <!-- Investigator -->
+    <string name="investigator_title">Auto-Investigador</string>
+    <string name="investigator_query_hint">¿Qué tema quieres investigar?</string>
+    <string name="investigator_search">Buscar</string>
+    <string name="investigator_analyzing">Analizando fuentes…</string>
+    <string name="investigator_sources_found">%1$d fuentes encontradas</string>
+
+    <!-- Quarantine -->
+    <string name="quarantine_title">Revisión Pendiente</string>
+    <string name="quarantine_approve">Aprobar</string>
+    <string name="quarantine_reject">Rechazar</string>
+    <string name="quarantine_conflict">Conflicto detectado</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_provider">Proveedor LLM</string>
+    <string name="settings_api_key">Clave API</string>
+    <string name="settings_offline">Modo offline</string>
+    <string name="settings_decision_engine">Motor de decisión</string>
+
+    <!-- Error messages -->
+    <string name="error_no_api_key">Configura tu clave API para continuar</string>
+    <string name="error_network">Sin conexión a internet</string>
+    <string name="error_unknown">Error desconocido</string>
+
+    <!-- Accessibility -->
+    <string name="cd_logo">Logo de Vespa</string>
+    <string name="cd_close">Cerrar</string>
+    <string name="cd_back">Volver</string>
+</resources>

@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+gradle-8.4/
+gradle.zip
+gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio
+*.iml
+local.properties
+.idea/
+.DS_Store
+captures/
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Logs
+*.log
+
+# Local configuration
+local.properties
+
+# Keystore
+*.jks
+*.keystore
+
+# Proto
+schemas/

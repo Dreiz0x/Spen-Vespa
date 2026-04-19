@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Vespa Color Palette - Dark mode ONLY -->
+    <!-- Per spec: Modo oscuro permanente. Sin light mode. -->
+
+    <!-- Base colors -->
+    <color name="vespa_background">#FF0A0A0A</color>
+    <color name="vespa_surface">#FF111111</color>
+    <color name="vespa_surface_variant">#FF1A1A1A</color>
+    <color name="vespa_outline">#FF2A2A2A</color>
+
+    <!-- Text colors -->
+    <color name="vespa_on_surface">#FFE8E8E8</color>
+    <color name="vespa_on_surface_mid">#FF888888</color>
+    <color name="vespa_on_surface_low">#FF444444</color>
+
+    <!-- Primary colors -->
+    <color name="vespa_primary">#FFFFFFFF</color>
+    <color name="vespa_on_primary">#FF000000</color>
+
+    <!-- Semantic colors -->
+    <color name="vespa_error">#FFCF6679</color>
+    <color name="vespa_success">#FF4CAF7D</color>
+    <color name="vespa_warning">#FFB8860B</color>
+
+    <!-- Logo tint -->
+    <color name="vespa_logo_tint">#FFCCCCCC</color>
+
+    <!-- Component colors -->
+    <color name="vespa_card_background">#FF111111</color>
+    <color name="vespa_divider">#FF2A2A2A</color>
+    <color name="vespa_chip_background">#FF1A1A1A</color>
+</resources>

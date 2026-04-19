@@ -1,0 +1,75 @@
+package dev.vskelk.cdf.ui.main
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.vskelk.cdf.core.domain.repository.AdaptiveRepository
+import dev.vskelk.cdf.core.domain.repository.AdaptiveRepositoryImpl
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+/**
+ * MainViewModel - ViewModel para la pantalla principal
+ */
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val adaptiveRepository: AdaptiveRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(MainUiState())
+    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    init {
+        loadStats()
+    }
+
+    private fun loadStats() {
+        viewModelScope.launch {
+            try {
+                val stats = adaptiveRepository.getOverallStats()
+                _uiState.update {
+                    it.copy(
+                        progresoGeneral = (stats.precisionGeneral * 100).toInt(),
+                        brechasDetectadas = stats.brechasActivas,
+                        sesionesCompletadas = stats.totalSesiones,
+                        subtemasDominados = stats.subtemasDominados,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+
+        // Observar sesiones recientes
+        viewModelScope.launch {
+            adaptiveRepository.observeRecentSessions(5).collect { sessions ->
+                _uiState.update { it.copy(recientes = sessions.map { s -> SessionSummary(s.id, s.correctos, s.totalReactivos, s.modulo) }) }
+            }
+        }
+    }
+
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true) }
+        loadStats()
+    }
+}
+
+data class MainUiState(
+    val isLoading: Boolean = true,
+    val progresoGeneral: Int = 0,
+    val brechasDetectadas: Int = 0,
+    val sesionesCompletadas: Int = 0,
+    val subtemasDominados: Int = 0,
+    val corpusVersion: String = "2.0",
+    val pendientesInvestigador: Int = 0,
+    val recientes: List<SessionSummary> = emptyList()
+)
+
+data class SessionSummary(
+    val id: Long,
+    val correctos: Int,
+    val total: Int,
+    val modulo: String
+)

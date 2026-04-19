@@ -1,0 +1,87 @@
+package dev.vskelk.cdf.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import dev.vskelk.cdf.ui.splash.SplashScreen
+import dev.vskelk.cdf.ui.main.MainScreen
+import dev.vskelk.cdf.ui.simulator.SimulatorScreen
+import dev.vskelk.cdf.ui.diagnosis.DiagnosisScreen
+import dev.vskelk.cdf.ui.interview.InterviewScreen
+import dev.vskelk.cdf.ui.investigator.InvestigatorScreen
+import dev.vskelk.cdf.ui.quarantine.QuarantineScreen
+
+/**
+ * AppNavGraph - Grafo de navegación principal
+ */
+@Composable
+fun AppNavGraph(
+    navController: NavHostController,
+    startDestination: String = Routes.SPLASH
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        // Splash
+        composable(Routes.SPLASH) {
+            SplashScreen(
+                onNavigateToMain = {
+                    navController.navigate(Routes.MAIN) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Main
+        composable(Routes.MAIN) {
+            MainScreen(
+                onNavigateToSimulator = { navController.navigate(Routes.SIMULATOR) },
+                onNavigateToDiagnosis = { navController.navigate(Routes.DIAGNOSIS) },
+                onNavigateToInterview = { navController.navigate(Routes.INTERVIEW) },
+                onNavigateToInvestigator = { navController.navigate(Routes.INVESTIGATOR) },
+                onNavigateToQuarantine = { navController.navigate(Routes.QUARANTINE) }
+            )
+        }
+
+        // Simulator
+        composable(Routes.SIMULATOR) {
+            SimulatorScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Diagnosis
+        composable(Routes.DIAGNOSIS) {
+            DiagnosisScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToInvestigator = { navController.navigate(Routes.INVESTIGATOR) }
+            )
+        }
+
+        // Interview
+        composable(Routes.INTERVIEW) {
+            InterviewScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Investigator
+        composable(Routes.INVESTIGATOR) {
+            InvestigatorScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Quarantine
+        composable(Routes.QUARANTINE) {
+            QuarantineScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}

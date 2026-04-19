@@ -1,0 +1,49 @@
+// Vespa User Preferences - Proto DataStore Schema
+// Per spec: Preferencias cifradas con Proto DataStore
+
+syntax = "proto3";
+
+option java_package = "dev.vskelk.cdf.core.datastore.proto";
+option java_multiple_files = true;
+
+/**
+ * Enum de proveedores LLM disponibles
+ */
+enum ProviderProto {
+    PROVIDER_UNSPECIFIED = 0;
+    PROVIDER_ANTHROPIC = 1;
+    PROVIDER_GEMINI = 2;
+    PROVIDER_OPENAI = 3;
+}
+
+/**
+ * Preferencias del usuario
+ */
+message UserPreferences {
+    /** Modo offline - no hacer llamadas a la API */
+    bool offline_mode = 1;
+
+    /** Si el motor de decisión está habilitado */
+    bool decision_engine_enabled = 2;
+
+    /** Proveedor LLM activo */
+    ProviderProto active_provider = 3;
+
+    /** Mapa de claves API por proveedor (cifradas) */
+    map<string, string> api_keys = 4;
+
+    /** Versión del seed aplicado */
+    string seed_version_applied = 5;
+
+    /** Si el usuario completó el onboarding */
+    bool onboarding_completed = 6;
+
+    /** Tema seleccionado (futuro) */
+    string selected_theme = 7;
+
+    /** Notificaciones habilitadas */
+    bool notifications_enabled = 8;
+
+    /** Última sincronización (timestamp) */
+    int64 last_sync_timestamp = 9;
+}

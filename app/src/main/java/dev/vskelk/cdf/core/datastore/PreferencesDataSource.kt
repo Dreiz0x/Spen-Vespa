@@ -4,16 +4,13 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
-import com.google.protobuf.Parser
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.vskelk.cdf.core.datastore.proto.ProviderProto
 import dev.vskelk.cdf.core.datastore.proto.UserPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * PreferencesDataSource - Acceso centralizado a preferencias del usuario
@@ -21,11 +18,11 @@ import javax.inject.Singleton
  * Maneja la persistencia de preferencias usando Proto DataStore,
  * incluyendo el cifrado de API keys.
  */
-@Singleton
-class PreferencesDataSource @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val cipherService: CipherService,
-    private val parser: Parser<UserPreferences>
+// ⚡ FUERA @Singleton y @Inject. Hilt lo arma en el DataStoreModule.
+// ⚡ FUERA el Parser. No se usaba y era lo que rompía KSP.
+class PreferencesDataSource(
+    private val context: Context,
+    private val cipherService: CipherService
 ) {
     private val dataStore: DataStore<UserPreferences> = DataStoreFactory.create(
         serializer = UserPreferencesSerializer(),
@@ -79,7 +76,8 @@ class PreferencesDataSource @Inject constructor(
     }
 
     suspend fun getApiKey(provider: String): String? {
-        val prefs = dataStore.data.last() ?: return null
+        // ⚡ CORREGIDO: usar first() en lugar de last() para no congelar la app.
+        val prefs = dataStore.data.first()
         val encrypted = prefs.apiKeysMap[provider] ?: return null
         return try {
             val cipherResult = CipherResult.fromStorageString(encrypted)
@@ -124,7 +122,7 @@ class PreferencesDataSource @Inject constructor(
         }
     }
 
-    // ===== OBSERVADORES CONVIVENIENTES =====
+    // ===== OBSERVADORES CONVENIENTES =====
 
     val isOfflineMode: Flow<Boolean> = preferencesFlow.map { it.offlineMode }
     val isDecisionEngineEnabled: Flow<Boolean> = preferencesFlow.map { it.decisionEngineEnabled }

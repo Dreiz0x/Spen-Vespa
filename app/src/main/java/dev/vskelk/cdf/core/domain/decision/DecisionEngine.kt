@@ -2,9 +2,9 @@ package dev.vskelk.cdf.core.domain.decision
 
 import dev.vskelk.cdf.core.datastore.PreferencesDataSource
 import dev.vskelk.cdf.core.network.resilience.CircuitBreaker
+// ⚡ IMPORTANTE: Agregué este import. Verifica que sea la ruta correcta donde vive tu NetworkMonitor
+import dev.vskelk.cdf.core.network.NetworkMonitor
 import kotlinx.coroutines.flow.first
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * DecisionEngine - Motor de decisión determinista
@@ -21,8 +21,8 @@ import javax.inject.Singleton
  * - Si hay caché disponible
  * - Si el motor de decisión está habilitado
  */
-@Singleton
-class DecisionEngine @Inject constructor(
+// ⚡ FUERA @Singleton y @Inject. Hilt lo construirá desde su módulo.
+class DecisionEngine(
     private val preferencesDataSource: PreferencesDataSource,
     private val circuitBreaker: CircuitBreaker,
     private val networkMonitor: NetworkMonitor

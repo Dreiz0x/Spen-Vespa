@@ -42,15 +42,6 @@ android {
         }
     }
 
-    // ⚡ AQUÍ ESTÁ LA MAGIA: Forzamos las rutas para que Gradle no se pierda.
-    sourceSets {
-        getByName("main") {
-            manifest.srcFile("src/main/AndroidManifest.xml")
-            java.srcDirs("src/main/java", "src/main/kotlin")
-            res.srcDirs("src/main/res")
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

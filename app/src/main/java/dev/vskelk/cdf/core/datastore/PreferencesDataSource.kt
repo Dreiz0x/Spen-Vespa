@@ -3,7 +3,7 @@ package dev.vskelk.cdf.core.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.core.ReplaceFileCorruptionHandler
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import dev.vskelk.cdf.core.datastore.proto.ProviderProto
 import dev.vskelk.cdf.core.datastore.proto.UserPreferences
@@ -13,14 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-/**
- * PreferencesDataSource - Acceso centralizado a preferencias del usuario
- *
- * Maneja la persistencia de preferencias usando Proto DataStore,
- * incluyendo el cifrado de API keys.
- */
-// ⚡ FUERA @Singleton y @Inject. Hilt lo arma en el DataStoreModule.
-// ⚡ FUERA el Parser. No se usaba y era lo que rompía KSP.
 class PreferencesDataSource(
     private val context: Context,
     private val cipherService: CipherService
@@ -31,9 +23,6 @@ class PreferencesDataSource(
         corruptionHandler = ReplaceFileCorruptionHandler { UserPreferences.getDefaultInstance() }
     )
 
-    /**
-     * Flow reactivo de preferencias
-     */
     val preferencesFlow: Flow<UserPreferences> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -42,8 +31,6 @@ class PreferencesDataSource(
                 throw exception
             }
         }
-
-    // ===== MODIFICADORES =====
 
     suspend fun setOfflineMode(enabled: Boolean) {
         dataStore.updateData { prefs ->
@@ -64,7 +51,6 @@ class PreferencesDataSource(
     }
 
     suspend fun setApiKey(provider: String, apiKey: String) {
-        // Cifrar la API key antes de almacenar
         val encrypted = cipherService.encrypt(apiKey)
         dataStore.updateData { prefs ->
             val updated = prefs.apiKeysMap.toMutableMap()
@@ -77,7 +63,6 @@ class PreferencesDataSource(
     }
 
     suspend fun getApiKey(provider: String): String? {
-        // ⚡ CORREGIDO: usar first() en lugar de last() para no congelar la app.
         val prefs = dataStore.data.first()
         val encrypted = prefs.apiKeysMap[provider] ?: return null
         return try {
@@ -123,8 +108,6 @@ class PreferencesDataSource(
         }
     }
 
-    // ===== OBSERVADORES CONVENIENTES =====
-
     val isOfflineMode: Flow<Boolean> = preferencesFlow.map { it.offlineMode }
     val isDecisionEngineEnabled: Flow<Boolean> = preferencesFlow.map { it.decisionEngineEnabled }
     val activeProvider: Flow<ProviderProto> = preferencesFlow.map { it.activeProvider }
@@ -133,17 +116,11 @@ class PreferencesDataSource(
     val notificationsEnabled: Flow<Boolean> = preferencesFlow.map { it.notificationsEnabled }
     val lastSyncTimestamp: Flow<Long> = preferencesFlow.map { it.lastSyncTimestamp }
 
-    /**
-     * Verifica si hay API key configurada para el proveedor activo
-     */
     val hasActiveApiKey: Flow<Boolean> = preferencesFlow.map { prefs ->
         val apiKeyEntry = prefs.apiKeysMap[prefs.activeProvider.name]
         apiKeyEntry != null
     }
 
-    /**
-     * Proveedor activo como enum de dominio
-     */
     fun getActiveProviderFlow(): Flow<LlmProvider> = activeProvider.map { proto ->
         when (proto) {
             ProviderProto.PROVIDER_ANTHROPIC -> LlmProvider.ANTHROPIC
@@ -154,9 +131,6 @@ class PreferencesDataSource(
     }
 }
 
-/**
- * Enum de proveedores LLM - dominio
- */
 enum class LlmProvider {
     UNSPECIFIED,
     ANTHROPIC,

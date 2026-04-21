@@ -1,94 +1,13 @@
 package dev.vskelk.cdf.core.data.repository
 
-import android.content.Context
 import dev.vskelk.cdf.core.database.dao.*
 import dev.vskelk.cdf.core.database.entity.*
 import dev.vskelk.cdf.core.domain.model.*
 import dev.vskelk.cdf.core.domain.repository.*
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * BootstrapRepositoryImpl - Implementación del repositorio de bootstrap
- */
-@Singleton
-class BootstrapRepositoryImpl @Inject constructor(
-    private val context: Context,
-    private val ontologyDao: OntologyDao,
-    private val normativeDao: NormativeDao,
-    private val reactivoDao: ReactivoDao,
-    private val preferencesDataSource: dev.vskelk.cdf.core.datastore.PreferencesDataSource,
-    private val json: Json
-) : BootstrapRepository {
-
-    override val bootstrapState: Flow<BootstrapState> = flow {
-        emit(BootstrapState.Checking)
-
-        try {
-            val manifest = getManifestJson()
-            val currentVersion = preferencesDataSource.seedVersionApplied.first()
-            val needsSeeding = currentVersion != manifest.version || !meetsMinimumCounts(manifest)
-
-            if (needsSeeding) {
-                emit(BootstrapState.Seeding("Verificando contenido...", 0f))
-
-                // Simular progreso de seeding
-                // En producción, esto haría la carga real
-                emit(BootstrapState.Seeding("Cargando ontología...", 0.3f))
-                emit(BootstrapState.Seeding("Cargando normativa...", 0.6f))
-                emit(BootstrapState.Seeding("Cargando reactivos...", 0.9f))
-
-                // Guardar versión
-                preferencesDataSource.setSeedVersionApplied(manifest.version)
-
-                emit(BootstrapState.Ready)
-            } else {
-                emit(BootstrapState.Ready)
-            }
-        } catch (e: Exception) {
-            emit(BootstrapState.Error(e.message ?: "Error desconocido", canRetry = true))
-        }
-    }.flowOn(kotlinx.coroutines.Dispatchers.IO)
-
-    private fun getManifestJson(): SeedManifest {
-        val jsonText = context.assets.open("seed/seed_manifest.json")
-            .bufferedReader()
-            .use { it.readText() }
-        return json.decodeFromString<SeedManifest>(jsonText)
-    }
-
-    override suspend fun needsSeeding(): Boolean {
-        val manifest = getManifestJson()
-        return preferencesDataSource.seedVersionApplied.first() != manifest.version ||
-                !meetsMinimumCounts(manifest)
-    }
-
-    override suspend fun getSeedVersion(): String? {
-        return preferencesDataSource.seedVersionApplied.first().takeIf { it.isNotEmpty() }
-    }
-
-    override suspend fun getManifest(): String {
-        return context.assets.open("seed/seed_manifest.json")
-            .bufferedReader()
-            .use { it.readText() }
-    }
-
-    private suspend fun meetsMinimumCounts(manifest: SeedManifest): Boolean {
-        val reactivos = reactivoDao.getActiveReactivoCount()
-        val normativa = normativeDao.getVigenteFragmentCount()
-        val ontologia = ontologyDao.getActiveNodeCount()
-
-        return reactivos >= manifest.minReactivos &&
-                normativa >= manifest.minNormativa &&
-                ontologia >= manifest.minOntologia
-    }
-}
-
-/**
- * OntologyRepositoryImpl - Implementación del repositorio ontológico
- */
 @Singleton
 class OntologyRepositoryImpl @Inject constructor(
     private val ontologyDao: OntologyDao,
@@ -131,7 +50,6 @@ class OntologyRepositoryImpl @Inject constructor(
                 if (mastery != null) {
                     mastery.toSubtemaConDominio(subtema.toModel())
                 } else {
-                    // Crear entrada con estado NO_VISTO
                     SubtemaConDominio(
                         subtema = subtema.toModel(),
                         estadoDominio = DomainState.NO_VISTO,

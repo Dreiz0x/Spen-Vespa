@@ -29,10 +29,16 @@ class AdaptiveRepositoryImpl @Inject constructor(
             val opciones = reactivoDao.getOptionsForReactivo(reactivo.id)
             val fundamentos = normativeDao.getFragmentsForReactivo(reactivo.id).first()
             ReactivoUI(
-                id = reactivo.id, enunciado = reactivo.enunciado, tipoReactivo = reactivo.tipoReactivo,
-                nivelCognitivo = reactivo.nivelCognitivo, dificultad = reactivo.dificultad,
-                opciones = opciones.map { op -> OpcionUI(id = op.id, texto = op.texto, isCorrect = op.isCorrect, explicacion = op.explicacion, distractorTipo = op.distractorTipo) },
-                citaTextual = reactivo.citaTextual, casoTexto = reactivo.casoTexto,
+                id = reactivo.id,
+                enunciado = reactivo.enunciado,
+                tipoReactivo = reactivo.tipoReactivo,
+                nivelCognitivo = reactivo.nivelCognitivo,
+                dificultad = reactivo.dificultad,
+                opciones = opciones.map { op ->
+                    OpcionUI(id = op.id, texto = op.texto, isCorrect = op.isCorrect, explicacion = op.explicacion, distractorTipo = op.distractorTipo)
+                },
+                citaTextual = reactivo.citaTextual,
+                casoTexto = reactivo.casoTexto,
                 fundamentes = fundamentos.map { "${it.source} ${it.articleRef ?: ""}" }
             )
         }
@@ -43,10 +49,16 @@ class AdaptiveRepositoryImpl @Inject constructor(
         val opciones = reactivoDao.getOptionsForReactivo(reactivoId)
         val fundamentos = normativeDao.getFragmentsForReactivo(reactivoId).first()
         return ReactivoUI(
-            id = reactivo.id, enunciado = reactivo.enunciado, tipoReactivo = reactivo.tipoReactivo,
-            nivelCognitivo = reactivo.nivelCognitivo, dificultad = reactivo.dificultad,
-            opciones = opciones.map { op -> OpcionUI(id = op.id, texto = op.texto, isCorrect = op.isCorrect, explicacion = op.explicacion, distractorTipo = op.distractorTipo) },
-            citaTextual = reactivo.citaTextual, casoTexto = reactivo.casoTexto,
+            id = reactivo.id,
+            enunciado = reactivo.enunciado,
+            tipoReactivo = reactivo.tipoReactivo,
+            nivelCognitivo = reactivo.nivelCognitivo,
+            dificultad = reactivo.dificultad,
+            opciones = opciones.map { op ->
+                OpcionUI(id = op.id, texto = op.texto, isCorrect = op.isCorrect, explicacion = op.explicacion, distractorTipo = op.distractorTipo)
+            },
+            citaTextual = reactivo.citaTextual,
+            casoTexto = reactivo.casoTexto,
             fundamentes = fundamentos.map { "${it.source} ${it.articleRef ?: ""}" }
         )
     }
@@ -55,8 +67,11 @@ class AdaptiveRepositoryImpl @Inject constructor(
         val reactivo = reactivoDao.getReactivoById(reactivoId) ?: return
         val selectedOption = reactivoDao.getOptionById(selectedOptionId)
         val intento = ReactivoIntentoEntity(
-            sessionId = sessionId, reactivoId = reactivoId, selectedOptionId = selectedOptionId,
-            isCorrect = isCorrect, tiempoRespuestaMs = tiempoRespuestaMs,
+            sessionId = sessionId,
+            reactivoId = reactivoId,
+            selectedOptionId = selectedOptionId,
+            isCorrect = isCorrect,
+            tiempoRespuestaMs = tiempoRespuestaMs,
             errorType = errorType ?: selectedOption?.distractorTipo?.let { ErrorType.fromDistractor(it) }
         )
         reactivoDao.insertIntento(intento)
@@ -80,10 +95,9 @@ class AdaptiveRepositoryImpl @Inject constructor(
         val precision = if (total > 0) correctos.toFloat() / total else 0f
         val tiempoPromedio = reactivoDao.getAverageTimeForSession(sessionId) ?: 0f
 
-        // ⚡ CASTING ESTRICTO A Long PARA EVITAR LA INFERENCIA GENÉRICA DE KOTLIN
         val weakSubtemas: List<Long> = intentos
             .filter { !it.isCorrect }
-            .mapNotNull { attempt -> 
+            .mapNotNull { attempt ->
                 val reactivo = reactivoDao.getReactivoById(attempt.reactivoId)
                 reactivo?.subtemaId?.toLong()
             }
@@ -93,14 +107,20 @@ class AdaptiveRepositoryImpl @Inject constructor(
         val dominantErrors = errorCounts.entries.sortedByDescending { it.value }.take(3).map { it.key }
 
         studySessionDao.completeSession(
-            sessionId = sessionId, correctos = correctos, tiempoPromedioSeg = tiempoPromedio,
+            sessionId = sessionId,
+            correctos = correctos,
+            tiempoPromedioSeg = tiempoPromedio,
             weakSubtemas = weakSubtemas,
             dominantErrors = dominantErrors
         )
 
         return SesionResultado(
-            sessionId = sessionId, totalReactivos = total, correctos = correctos, incorrectos = incorrectos,
-            precision = precision, tiempoPromedioSeg = tiempoPromedio,
+            sessionId = sessionId,
+            totalReactivos = total,
+            correctos = correctos,
+            incorrectos = incorrectos,
+            precision = precision,
+            tiempoPromedioSeg = tiempoPromedio,
             subtemasDebiles = weakSubtemas.map { it.toString() },
             tiposErrorFrecuentes = dominantErrors,
             mensaje = if (precision >= 0.8f) "¡Excelente!" else "A repasar."
@@ -114,7 +134,39 @@ class AdaptiveRepositoryImpl @Inject constructor(
         return userMasteryDao.getMasteryByStates(DomainState.estadosDebiles.toList()).map { masteries ->
             masteries.map { mastery ->
                 SubtemaConDominio(
-                    subtema = OntologyNode(id = mastery.subtemaId, nodeType = "", name = "Subtema ${mastery.subtemaId}", description = null, parentId = null, weight = 1f, isActive = true),
-                    estadoDominio = mastery.estadoDominio, precision = mastery.precision, totalIntentos = mastery.totalIntentos, velocidadPromedio = mastery.velocidadPromedio
+                    subtema = OntologyNode(
+                        id = mastery.subtemaId,
+                        nodeType = "",
+                        name = "Subtema ${mastery.subtemaId}",
+                        description = null,
+                        parentId = null,
+                        weight = 1f,
+                        isActive = true
+                    ),
+                    estadoDominio = mastery.estadoDominio,
+                    precision = mastery.precision,
+                    totalIntentos = mastery.totalIntentos,
+                    velocidadPromedio = mastery.velocidadPromedio
                 )
             }
+        }
+    }
+
+    override suspend fun getFrequentErrorTypes(limit: Int): List<Pair<String, Int>> = userMasteryDao.getGlobalErrorTypeCounts(limit).map { it.errorType to it.count }
+
+    override suspend fun getOverallStats(): OverallStats {
+        val sessionCount = studySessionDao.getCompletedSessionCount()
+        val overallAccuracy = studySessionDao.getOverallAccuracy() ?: 0f
+        val dominadoCount = userMasteryDao.getMasteryByState(DomainState.DOMINADO).first().size
+        val totalMastery = userMasteryDao.getMasteryCount()
+        val brechaCount = userMasteryDao.observeAffectedSubtemaCount().first()
+
+        return OverallStats(
+            totalSesiones = sessionCount,
+            precisionGeneral = overallAccuracy,
+            subtemasDominados = dominadoCount,
+            totalSubtemas = totalMastery,
+            brechasActivas = brechaCount
+        )
+    }
+}

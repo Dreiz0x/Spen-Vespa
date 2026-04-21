@@ -94,6 +94,15 @@ object CuarentenaEstado {
 }
 
 /**
+ * Niveles de certeza en la extracción
+ */
+object ExtractionCertainty {
+    const val ALTA = "ALTA"
+    const val MEDIA = "MEDIA"
+    const val BAJA = "BAJA"
+}
+
+/**
  * Reglas de validación automática
  *
  * Per spec:

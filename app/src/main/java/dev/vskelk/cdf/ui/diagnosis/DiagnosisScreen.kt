@@ -74,7 +74,7 @@ fun DiagnosisScreen(
                         items(state.subtemasDebiles) { subtema ->
                             SubtemaCard(
                                 subtema = subtema,
-                                onInvestigate = { viewModel.investigate(subtema.id) }
+                                onInvestigate = { viewModel.investigate(subtema.subtema.id) }
                             )
                         }
                     }

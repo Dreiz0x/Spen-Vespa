@@ -72,6 +72,9 @@ data class NormativeFragmentEntity(
     /** Si fue modificado, FK al fragmento que lo reemplaza */
     val reemplazadoPorId: Long? = null,
 
+    /** Razón de invalidación (cuando fue derogado/modificado) */
+    val invalidationReason: String? = null,
+
     /** Confianza acumulada (conteo de validaciones) */
     val confidenceCount: Int = 1,
 

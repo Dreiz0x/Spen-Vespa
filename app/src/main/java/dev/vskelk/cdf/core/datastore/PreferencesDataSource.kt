@@ -3,6 +3,7 @@ package dev.vskelk.cdf.core.datastore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.core.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import dev.vskelk.cdf.core.datastore.proto.ProviderProto
 import dev.vskelk.cdf.core.datastore.proto.UserPreferences
@@ -27,7 +28,7 @@ class PreferencesDataSource(
     private val dataStore: DataStore<UserPreferences> = DataStoreFactory.create(
         serializer = UserPreferencesSerializer(),
         produceFile = { context.dataStoreFile("user_preferences.pb") },
-        corruptionPolicy = androidx.datastore.core.CorruptionPolicy.FAIL_ON_PROTO_DATA_CORRUPTION
+        corruptionHandler = ReplaceFileCorruptionHandler { UserPreferences.getDefaultInstance() }
     )
 
     /**

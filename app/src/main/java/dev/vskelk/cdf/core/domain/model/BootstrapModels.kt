@@ -1,6 +1,7 @@
 package dev.vskelk.cdf.core.domain.model
 
 import dev.vskelk.cdf.core.database.entity.*
+import kotlinx.serialization.Serializable
 
 /**
  * BootstrapModels - Modelos para el sistema de bootstrap
@@ -29,6 +30,7 @@ sealed interface BootstrapState {
 /**
  * Manifest del seed
  */
+@Serializable
 data class SeedManifest(
     val version: String,
     val minReactivos: Int,

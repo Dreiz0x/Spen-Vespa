@@ -1,13 +1,12 @@
 package dev.vskelk.cdf.core.data.repository
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import dev.vskelk.cdf.core.database.dao.*
 import dev.vskelk.cdf.core.database.entity.*
 import dev.vskelk.cdf.core.domain.model.*
 import dev.vskelk.cdf.core.domain.repository.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,10 +19,9 @@ class BootstrapRepositoryImpl @Inject constructor(
     private val ontologyDao: OntologyDao,
     private val normativeDao: NormativeDao,
     private val reactivoDao: ReactivoDao,
-    private val preferencesDataSource: dev.vskelk.cdf.core.datastore.PreferencesDataSource
+    private val preferencesDataSource: dev.vskelk.cdf.core.datastore.PreferencesDataSource,
+    private val json: Json
 ) : BootstrapRepository {
-
-    private val gson = Gson()
 
     override val bootstrapState: Flow<BootstrapState> = flow {
         emit(BootstrapState.Checking)
@@ -55,10 +53,10 @@ class BootstrapRepositoryImpl @Inject constructor(
     }.flowOn(kotlinx.coroutines.Dispatchers.IO)
 
     private fun getManifestJson(): SeedManifest {
-        val json = context.assets.open("seed/seed_manifest.json")
+        val jsonText = context.assets.open("seed/seed_manifest.json")
             .bufferedReader()
             .use { it.readText() }
-        return gson.fromJson(json, SeedManifest::class.java)
+        return json.decodeFromString<SeedManifest>(jsonText)
     }
 
     override suspend fun needsSeeding(): Boolean {

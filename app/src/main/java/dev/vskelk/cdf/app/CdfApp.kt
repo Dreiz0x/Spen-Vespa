@@ -27,6 +27,6 @@ class CdfApp : Application(), Configuration.Provider {
             // Habilitar migración destructiva durante desarrollo
             // Según spec: FallbackToDestructiveMigrationFrom(1) durante desarrollo
             // Migración explícita antes de release
-            .setMinLoggingLevel(android.util.Log.INFO)
+            .setMinimumLoggingLevel(android.util.Log.INFO)
             .build()
 }

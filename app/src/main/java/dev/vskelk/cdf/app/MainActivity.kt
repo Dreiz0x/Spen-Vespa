@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import dev.vskelk.cdf.navigation.AppNavGraph
+import dev.vskelk.cdf.ui.navigation.AppNavGraph
 import dev.vskelk.cdf.ui.theme.VespaTheme
 
 /**

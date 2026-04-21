@@ -236,7 +236,7 @@ class AdaptiveRepositoryImpl @Inject constructor(
     override suspend fun getOverallStats(): OverallStats {
         val sessionCount = studySessionDao.getCompletedSessionCount()
         val overallAccuracy = studySessionDao.getOverallAccuracy() ?: 0f
-        val dominadoCount = userMasteryDao.getMasteryByState(DomainState.DOMINADO).first().size
+        val dominadoCount = userMasteryDao.getMasteryByState(DomainState.DOMINADO.name).first().size
         val totalMastery = userMasteryDao.getMasteryCount()
         val brechaCount = userMasteryDao.observeAffectedSubtemaCount().first()
 

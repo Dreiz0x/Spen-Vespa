@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.vskelk.cdf.core.domain.repository.AdaptiveRepository
-import dev.vskelk.cdf.core.domain.repository.AdaptiveRepositoryImpl
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject

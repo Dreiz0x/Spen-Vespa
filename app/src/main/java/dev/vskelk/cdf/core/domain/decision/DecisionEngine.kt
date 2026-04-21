@@ -2,33 +2,15 @@ package dev.vskelk.cdf.core.domain.decision
 
 import dev.vskelk.cdf.core.datastore.PreferencesDataSource
 import dev.vskelk.cdf.core.network.resilience.CircuitBreaker
-import dev.vskelk.cdf.core.network.NetworkMonitor
+import dev.vskelk.cdf.core.network.resilience.NetworkMonitor // ⚡ EL IMPORT EXACTO DE TU ARCHIVO
 import kotlinx.coroutines.flow.first
 
-/**
- * DecisionEngine - Motor de decisión determinista
- *
- * Per spec:
- * - "Algoritmo determinista. No llama a la IA. Evalúa condiciones del sistema."
- * - "El DecisionEngine es determinista. No llama a la IA nunca."
- *
- * Este motor decide qué hacer con una solicitud basándose en:
- * - Si hay API key configurada
- * - Si hay conexión a internet
- * - Si el circuit breaker está abierto
- * - Si el modo offline está habilitado
- * - Si hay caché disponible
- * - Si el motor de decisión está habilitado
- */
 class DecisionEngine(
     private val preferencesDataSource: PreferencesDataSource,
     private val circuitBreaker: CircuitBreaker,
     private val networkMonitor: NetworkMonitor
 ) {
 
-    /**
-     * Evalúa el estado del sistema y retorna la ruta de decisión apropiada
-     */
     suspend fun evaluate(): DecisionPath {
         val hasApiKey = preferencesDataSource.hasActiveApiKey.first()
         val online = networkMonitor.isOnline()
@@ -37,27 +19,9 @@ class DecisionEngine(
         val decisionEngineEnabled = preferencesDataSource.isDecisionEngineEnabled.first()
         val hasCache = checkCacheAvailability()
 
-        return evaluate(
-            hasApiKey = hasApiKey,
-            online = online,
-            breakerOpen = breakerOpen,
-            offlineMode = offlineMode,
-            decisionEngineEnabled = decisionEngineEnabled,
-            hasCache = hasCache
-        )
+        return evaluate(hasApiKey, online, breakerOpen, offlineMode, decisionEngineEnabled, hasCache)
     }
 
-    /**
-     * Lógica de decisión determinista
-     *
-     * Per spec:
-     * if (!hasApiKey) → BLOCK_MISSING_KEY
-     * if (!decisionEngineEnabled) → online ? SEND_REMOTE : QUEUE_AND_DEFER
-     * if (offlineMode) → hasCache ? SERVE_CACHE : QUEUE_AND_DEFER
-     * if (breakerOpen) → hasCache ? SERVE_CACHE : QUEUE_AND_DEFER
-     * if (!online) → hasCache ? SERVE_CACHE : QUEUE_AND_DEFER
-     * else → SEND_REMOTE
-     */
     fun evaluate(
         hasApiKey: Boolean,
         online: Boolean,
@@ -66,47 +30,16 @@ class DecisionEngine(
         decisionEngineEnabled: Boolean,
         hasCache: Boolean
     ): DecisionPath {
-        // Paso 1: Sin API key, no hay nada que hacer
-        if (!hasApiKey) {
-            return DecisionPath.BLOCK_MISSING_KEY
-        }
-
-        // Paso 2: Motor de decisión deshabilitado
-        if (!decisionEngineEnabled) {
-            return if (online) DecisionPath.SEND_REMOTE else DecisionPath.QUEUE_AND_DEFER
-        }
-
-        // Paso 3: Modo offline
-        if (offlineMode) {
-            return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
-        }
-
-        // Paso 4: Circuit breaker abierto
-        if (breakerOpen) {
-            return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
-        }
-
-        // Paso 5: Sin conexión
-        if (!online) {
-            return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
-        }
-
-        // Paso 6: Todo bien, enviar al proveedor
+        if (!hasApiKey) return DecisionPath.BLOCK_MISSING_KEY
+        if (!decisionEngineEnabled) return if (online) DecisionPath.SEND_REMOTE else DecisionPath.QUEUE_AND_DEFER
+        if (offlineMode) return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
+        if (breakerOpen) return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
+        if (!online) return if (hasCache) DecisionPath.SERVE_CACHE else DecisionPath.QUEUE_AND_DEFER
         return DecisionPath.SEND_REMOTE
     }
 
-    /**
-     * Verifica si hay caché disponible para servir
-     */
-    private fun checkCacheAvailability(): Boolean {
-        // Implementar lógica de verificación de caché
-        // Por ahora retorna false - se implementará con Room
-        return false
-    }
+    private fun checkCacheAvailability(): Boolean = false
 
-    /**
-     * Obtiene información de debug para diagnóstico
-     */
     suspend fun getDebugInfo(): DecisionDebugInfo {
         return DecisionDebugInfo(
             hasApiKey = preferencesDataSource.hasActiveApiKey.first(),
@@ -120,26 +53,13 @@ class DecisionEngine(
     }
 }
 
-/**
- * Rutas de decisión disponibles
- */
 enum class DecisionPath {
-    /** Llamar al proveedor LLM activo */
     SEND_REMOTE,
-
-    /** Responder desde Room/caché */
     SERVE_CACHE,
-
-    /** Encolar para enviar cuando haya conexión */
     QUEUE_AND_DEFER,
-
-    /** Solicitar configuración de API key al usuario */
     BLOCK_MISSING_KEY
 }
 
-/**
- * Información de debug del motor de decisión
- */
 data class DecisionDebugInfo(
     val hasApiKey: Boolean,
     val online: Boolean,

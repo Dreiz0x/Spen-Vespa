@@ -5,16 +5,9 @@ import dev.vskelk.cdf.core.database.entity.*
 import dev.vskelk.cdf.core.domain.model.*
 import dev.vskelk.cdf.core.domain.repository.InvestigadorRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * InvestigadorRepositoryImpl - Implementación del Auto-Investigador
- *
- * Per spec: La IA nunca escribe conocimiento canónico directamente.
- * Solo extrae, estructura y propone. El usuario valida.
- */
 @Singleton
 class InvestigadorRepositoryImpl @Inject constructor(
     private val cuarentenaDao: CuarentenaDao,
@@ -25,11 +18,9 @@ class InvestigadorRepositoryImpl @Inject constructor(
 
     override suspend fun investigar(tema: String, areaExamen: String?): InvestigacionEstado {
         try {
-            // PASO 1: ACOTAR - Verificar qué hay ya en Room
             emitState(InvestigacionEstado.Acotando("Buscando información existente..."))
             val existente = normativeDao.searchByKeyword(tema)
             if (existente.size >= 5) {
-                // Hay suficiente información, no necesitamos llamar a la API
                 return InvestigacionEstado.Completado(
                     InvestigacionResult(
                         fragmentos = existente.map { it.toInvestigado() },
@@ -40,18 +31,13 @@ class InvestigadorRepositoryImpl @Inject constructor(
                 )
             }
 
-            // PASO 2: FORMULAR - Preparar prompt para IA
             emitState(InvestigacionEstado.Formulando("Preparando consulta..."))
             val apiKey = preferencesDataSource.getApiKey("ANTHROPIC")
                 ?: return InvestigacionEstado.Error("No hay API key configurada")
 
-            // En producción, aquí se construiría el prompt y se llamaría a la IA
-            // Por ahora, retornamos un estado de simulación
             emitState(InvestigacionEstado.Consultando("Consultando fuentes..."))
-            // Simular llamada a IA
             kotlinx.coroutines.delay(1000)
 
-            // PASO 3-5: Validar, parsear y guardar en cuarentena
             emitState(InvestigacionEstado.Validando("Analizando resultados..."))
 
             return InvestigacionEstado.Completado(
@@ -68,17 +54,13 @@ class InvestigadorRepositoryImpl @Inject constructor(
     }
 
     private suspend fun emitState(state: InvestigacionEstado): InvestigacionEstado {
-        kotlinx.coroutines.delay(500) // Simular trabajo
+        kotlinx.coroutines.delay(500)
         return state
     }
 
-    override fun observePendientes(): Flow<List<CuarentenaFragmentoEntity>> {
-        return cuarentenaDao.observePendientes()
-    }
-
-    override fun observeConflictos(): Flow<List<CuarentenaFragmentoEntity>> {
-        return cuarentenaDao.observeConflictos()
-    }
+    override fun observePendientes(): Flow<List<CuarentenaFragmentoEntity>> = cuarentenaDao.observePendientes()
+    
+    override fun observeConflictos(): Flow<List<CuarentenaFragmentoEntity>> = cuarentenaDao.observeConflictos()
 
     override suspend fun approveFragmento(fragmentoId: Long) {
         cuarentenaDao.approveFragmento(fragmentoId)
@@ -91,10 +73,8 @@ class InvestigadorRepositoryImpl @Inject constructor(
     override suspend fun approveAndPromoteToNormative(fragmentoId: Long) {
         val fragmento = cuarentenaDao.getFragmentoById(fragmentoId) ?: return
 
-        // 1. Verificar si existe duplicado exacto
         val existente = normativeDao.findExactDuplicate(fragmento.contenido)
         if (existente != null) {
-            // Reforzar confianza del existente
             normativeDao.updateFragment(
                 existente.copy(
                     confidenceCount = existente.confidenceCount + 1,
@@ -102,7 +82,6 @@ class InvestigadorRepositoryImpl @Inject constructor(
                 )
             )
         } else {
-            // 2. Crear nuevo fragmento normativo
             val nuevoFragmento = NormativeFragmentEntity(
                 content = fragmento.contenido,
                 source = fragmento.fuente ?: "DESCONOCIDA",
@@ -115,17 +94,12 @@ class InvestigadorRepositoryImpl @Inject constructor(
             normativeDao.insertFragment(nuevoFragmento)
         }
 
-        // 3. Marcar como aprobado en cuarentena
         cuarentenaDao.approveFragmento(fragmentoId)
     }
 
-    override fun observePendienteCount(): Flow<Int> {
-        return cuarentenaDao.observePendienteCount()
-    }
-
-    override fun observeConflictoCount(): Flow<Int> {
-        return cuarentenaDao.observeConflictoCount()
-    }
+    override fun observePendienteCount(): Flow<Int> = cuarentenaDao.observePendienteCount()
+    
+    override fun observeConflictoCount(): Flow<Int> = cuarentenaDao.observeConflictoCount()
 
     private fun NormativeFragmentEntity.toInvestigado() = FragmentoInvestigado(
         contenido = content,

@@ -52,27 +52,10 @@ jobs:
             app/build/reports/
           retention-days: 7
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      # 4. ELIMINAMOS setup-android@v3 porque 'ubuntu-latest' ya trae el SDK preinstalado. Cero fricción.
-      
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
-
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vespa-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Upload build logs on failure
+      - name: AI CI Healer
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: mariorazo97/ai-ci-healer@v1
         with:
-          name: build-logs
-          path: |
-            app/build/outputs/lint-results-debug.html
-            app/build/reports/
-          retention-days: 7
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          llm-provider: "groq"
+          groq-api-key: ${{ secrets.GROQ_API_KEY }}

@@ -1,6 +1,7 @@
 package dev.vskelk.cdf.core.data.repository
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.vskelk.cdf.core.database.dao.*
 import dev.vskelk.cdf.core.database.entity.*
 import dev.vskelk.cdf.core.domain.model.*
@@ -16,7 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BootstrapRepositoryImpl @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val ontologyDao: OntologyDao,
     private val normativeDao: NormativeDao,
     private val reactivoDao: ReactivoDao,
@@ -89,13 +90,4 @@ class BootstrapRepositoryImpl @Inject constructor(
 
     override suspend fun needsSeeding(): Boolean {
         val manifest = getManifestJson()
-        return preferencesDataSource.seedVersionApplied.first() != manifest.version || !meetsMinimumCounts(manifest)
-    }
-
-    override suspend fun getSeedVersion(): String? = preferencesDataSource.seedVersionApplied.first().takeIf { it.isNotEmpty() }
-    override suspend fun getManifest(): String = context.assets.open("seed/seed_manifest.json").bufferedReader().use { it.readText() }
-    
-    private suspend fun meetsMinimumCounts(manifest: SeedManifest): Boolean {
-        return reactivoDao.getActiveReactivoCount() >= manifest.minReactivos && normativeDao.getVigenteFragmentCount() >= manifest.minNormativa && ontologyDao.getActiveNodeCount() >= manifest.minOntologia
-    }
-}
+        return preferencesDataSource.seedVersionApplied.first

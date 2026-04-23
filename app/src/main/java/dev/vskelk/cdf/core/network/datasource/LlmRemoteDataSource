@@ -7,6 +7,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * LlmRemoteDataSource - Interfaz multi-proveedor para LLMs
+ */
 interface LlmRemoteDataSource {
     suspend fun sendMessage(
         apiKey: String,
@@ -15,6 +18,9 @@ interface LlmRemoteDataSource {
     ): Result<String>
 }
 
+/**
+ * Implementación nativa para Gemini 1.5 Pro
+ */
 @Singleton
 class GeminiRemoteDataSource @Inject constructor() : LlmRemoteDataSource {
 
@@ -32,7 +38,6 @@ class GeminiRemoteDataSource @Inject constructor() : LlmRemoteDataSource {
             val response = if (pdfBytes != null) {
                 generativeModel.generateContent(
                     content {
-                        // En versiones ≥0.15.0 se usa 'data' en lugar de 'blob'
                         data("application/pdf", pdfBytes)
                         text(prompt)
                     }

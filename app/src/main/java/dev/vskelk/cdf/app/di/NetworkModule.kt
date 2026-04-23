@@ -30,5 +30,7 @@ object NetworkModule {
     @Singleton
     fun provideLlmRemoteDataSource(
         geminiDataSource: GeminiRemoteDataSource
-    ): LlmRemoteDataSource = geminiDataSource
+    ): LlmRemoteDataSource {
+        return geminiDataSource
+    }
 }

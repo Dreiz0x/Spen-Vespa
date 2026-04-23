@@ -33,6 +33,3 @@
 
 # Keep Protobuf
 -keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
-
-# Keep LLM providers DTOs
--keep class dev.vskelk.cdf.network.dto.** { *; }

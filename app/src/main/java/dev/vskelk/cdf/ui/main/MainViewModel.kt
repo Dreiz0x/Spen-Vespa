@@ -3,24 +3,47 @@ package dev.vskelk.cdf.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.vskelk.cdf.core.domain.model.BootstrapState
 import dev.vskelk.cdf.core.domain.repository.AdaptiveRepository
+import dev.vskelk.cdf.core.domain.repository.BootstrapRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * MainViewModel - ViewModel para la pantalla principal
- */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val adaptiveRepository: AdaptiveRepository
+    private val adaptiveRepository: AdaptiveRepository,
+    private val bootstrapRepository: BootstrapRepository // ⚡ Inyectado para activar la siembra
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
+        // ⚡ Iniciamos la observación del estado de arranque
+        checkBootstrap()
         loadStats()
+    }
+
+    private fun checkBootstrap() {
+        viewModelScope.launch {
+            bootstrapRepository.bootstrapState.collect { state ->
+                when (state) {
+                    is BootstrapState.Seeding -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is BootstrapState.Ready -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        loadStats() // Recargamos stats ahora que hay datos
+                    }
+                    is BootstrapState.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        // Aquí podrías emitir un evento de error a la UI
+                    }
+                    else -> Unit
+                }
+            }
+        }
     }
 
     private fun loadStats() {
@@ -41,10 +64,13 @@ class MainViewModel @Inject constructor(
             }
         }
 
-        // Observar sesiones recientes
         viewModelScope.launch {
             adaptiveRepository.observeRecentSessions(5).collect { sessions ->
-                _uiState.update { it.copy(recientes = sessions.map { s -> SessionSummary(s.id, s.correctos, s.totalReactivos, s.modulo) }) }
+                _uiState.update { 
+                    it.copy(recientes = sessions.map { s -> 
+                        SessionSummary(s.id, s.correctos, s.totalReactivos, s.modulo) 
+                    }) 
+                }
             }
         }
     }
@@ -54,21 +80,3 @@ class MainViewModel @Inject constructor(
         loadStats()
     }
 }
-
-data class MainUiState(
-    val isLoading: Boolean = true,
-    val progresoGeneral: Int = 0,
-    val brechasDetectadas: Int = 0,
-    val sesionesCompletadas: Int = 0,
-    val subtemasDominados: Int = 0,
-    val corpusVersion: String = "2.0",
-    val pendientesInvestigador: Int = 0,
-    val recientes: List<SessionSummary> = emptyList()
-)
-
-data class SessionSummary(
-    val id: Long,
-    val correctos: Int,
-    val total: Int,
-    val modulo: String
-)

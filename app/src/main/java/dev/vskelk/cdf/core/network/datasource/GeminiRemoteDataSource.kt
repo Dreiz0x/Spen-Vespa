@@ -1,5 +1,6 @@
 package dev.vskelk.cdf.core.network.datasource
 
+import dev.vskelk.cdf.core.network.gemini.GeminiService // ⚡ ESTO TE FALTABA
 import javax.inject.Inject
 import javax.inject.Singleton
 

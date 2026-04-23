@@ -130,13 +130,7 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
-    // ✅ SDK de Gemini actualizado (estable con Kotlin 2.0+)
-    implementation("com.google.ai.client.generativeai:generativeai:0.17.0")
-
-    // Excluimos protobuf-lite del SDK para evitar conflictos con nuestra versión
-    implementation("com.google.ai.client.generativeai:generativeai:0.17.0") {
-        exclude(group = "com.google.protobuf", module = "protobuf-javalite")
-    }
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     implementation(libs.kotlinx.serialization.json)
 
@@ -151,7 +145,6 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
 }
 
-// Rompe ciclo infinito entre KSP, Protobuf y los Tests
 tasks.configureEach {
     if (name.startsWith("extractInclude") && name.contains("TestProto")) {
         setDependsOn(emptyList<Any>())

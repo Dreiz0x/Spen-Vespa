@@ -130,9 +130,13 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
-    // Google AI Client SDK for Gemini API
-    // Versión estable con soporte multimodal completo
-    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+    // --- MOTORES DE RED (GSON + OKHTTP + RETROFIT) ---
+    // Eliminado SDK nativo: Usamos REST para control total de la ontología
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation(libs.kotlinx.serialization.json)
 

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import dev.vskelk.cdf.core.util.CrashReporter // El import de la caja negra
 import javax.inject.Inject
 
 /**
@@ -20,6 +21,12 @@ class CdfApp : Application(), Configuration.Provider {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    // ⚡ AQUÍ PRENDEMOS EL REPORTE DE ERRORES AL INSTANTE DE ABRIR LA APP
+    override fun onCreate() {
+        super.onCreate()
+        CrashReporter.instalar(this)
+    }
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

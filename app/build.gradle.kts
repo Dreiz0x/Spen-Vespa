@@ -59,7 +59,6 @@ android {
     }
 }
 
-// Opciones de Kotlin modernas
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
@@ -131,9 +130,14 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
-    // ⚡ EL CEREBRO: SDK NATIVO DE GEMINI ⚡
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    
+    // ✅ SDK de Gemini actualizado (estable con Kotlin 2.0+)
+    implementation("com.google.ai.client.generativeai:generativeai:0.17.0")
+
+    // Excluimos protobuf-lite del SDK para evitar conflictos con nuestra versión
+    implementation("com.google.ai.client.generativeai:generativeai:0.17.0") {
+        exclude(group = "com.google.protobuf", module = "protobuf-javalite")
+    }
+
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.kotlinx.coroutines.core)
@@ -147,7 +151,7 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
 }
 
-// ⚡ CORTE DE CAJA: Rompemos el ciclo infinito entre KSP, Protobuf y los Tests.
+// Rompe ciclo infinito entre KSP, Protobuf y los Tests
 tasks.configureEach {
     if (name.startsWith("extractInclude") && name.contains("TestProto")) {
         setDependsOn(emptyList<Any>())

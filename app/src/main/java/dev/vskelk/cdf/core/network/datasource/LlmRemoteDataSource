@@ -17,9 +17,6 @@ interface LlmRemoteDataSource {
         pdfBytes: ByteArray? = null
     ): Result<String>
 
-    /**
-     * Envía un mensaje con salida JSON estructurada estricta
-     */
     suspend fun sendMessageWithJsonResponse(
         apiKey: String,
         prompt: String,
@@ -32,9 +29,9 @@ interface LlmRemoteDataSource {
  * 
  * Capacidades:
  * - Visión multimodal (PDF como imágenes página por página)
- * - Contexto largo (hasta 2M tokens con Gemini 1.5 Pro)
+ * - Contexto largo (hasta 2M tokens)
  * - Extracción de tablas desde imágenes
- * - Salida JSON estructurada estricta
+ * - Salida JSON estructurada
  */
 @Singleton
 class GeminiRemoteDataSource @Inject constructor() : LlmRemoteDataSource {

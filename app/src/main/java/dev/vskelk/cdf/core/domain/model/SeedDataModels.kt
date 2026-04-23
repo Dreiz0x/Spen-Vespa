@@ -1,15 +1,25 @@
 package dev.vskelk.cdf.core.domain.model
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
 /**
- * SeedDataModels - Modelos para parsing de archivos JSON de seed
- *
- * Estos modelos representan la estructura exacta de los archivos JSON
- * en assets/seed/ para poder cargarlos en la base de datos Room.
+ * SeedManifest - El índice maestro de la carga inicial.
  */
+@Serializable
+data class SeedManifest(
+    @SerialName("version") val version: String,
+    @SerialName("minReactivos") val minReactivos: Int,
+    @SerialName("minNormativa") val minNormativa: Int,
+    @SerialName("minOntologia") val minOntologia: Int,
+    @SerialName("descripcion") val descripcion: String,
+    @SerialName("archivos") val archivos: Map<String, String>
+)
 
 /**
  * Modelo para normativa_sources.json
  */
+@Serializable
 data class SeedNormativaSource(
     val id: Long,
     val code: String,
@@ -23,6 +33,7 @@ data class SeedNormativaSource(
 /**
  * Modelo para normativa_fragments.json
  */
+@Serializable
 data class SeedNormativaFragment(
     val id: Long,
     val source_id: Long,
@@ -39,6 +50,7 @@ data class SeedNormativaFragment(
 /**
  * Modelo para ontologia.json
  */
+@Serializable
 data class SeedOntologiaNode(
     val id: Long,
     val node_type: String,
@@ -52,6 +64,7 @@ data class SeedOntologiaNode(
 /**
  * Modelo para ontologia_edges.json
  */
+@Serializable
 data class SeedOntologiaEdge(
     val id: Long,
     val source_id: Long,
@@ -63,6 +76,7 @@ data class SeedOntologiaEdge(
 /**
  * Modelo para reactivos.json
  */
+@Serializable
 data class SeedReactivo(
     val id: Long,
     val enunciado: String,
@@ -87,6 +101,7 @@ data class SeedReactivo(
 /**
  * Modelo para opciones de reactivo
  */
+@Serializable
 data class SeedReactivoOption(
     val id: Long,
     val texto: String,

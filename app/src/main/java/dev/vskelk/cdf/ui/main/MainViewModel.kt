@@ -1,192 +1,90 @@
-Package dev.vskelk.cdf.ui.main
+package dev.vskelk.cdf.ui.main
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import dev.vskelk.cdf.ui.theme.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.vskelk.cdf.core.domain.model.BootstrapState
+import dev.vskelk.cdf.core.domain.repository.AdaptiveRepository
+import dev.vskelk.cdf.core.domain.repository.BootstrapRepository
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScreen(
-    onNavigateToSimulator: () -> Unit,
-    onNavigateToDiagnosis: () -> Unit,
-    onNavigateToInterview: () -> Unit,
-    onNavigateToInvestigator: () -> Unit,
-    onNavigateToQuarantine: () -> Unit,
-    onNavigateToSettings: () -> Unit,
-    viewModel: MainViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+data class SessionSummary(
+    val id: Long,
+    val correctos: Int,
+    val total: Int,
+    val modulo: String
+)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Vespa", style = MaterialTheme.typography.titleLarge) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = VespaBackground,
-                    titleContentColor = VespaOnSurface
-                ),
-                actions = {
-                    // ✅ AHORA SÍ: Settings conectado correctamente
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Configuración",
-                            tint = VespaOnSurfaceMid
-                        )
+data class MainUiState(
+    val isLoading: Boolean = true,
+    val progresoGeneral: Int = 0,
+    val brechasDetectadas: Int = 0,
+    val sesionesCompletadas: Int = 0,
+    val subtemasDominados: Int = 0,
+    val corpusVersion: String = "2.0.0",
+    val pendientesInvestigador: Int = 0,
+    val recientes: List<SessionSummary> = emptyList()
+)
+
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val adaptiveRepository: AdaptiveRepository,
+    private val bootstrapRepository: BootstrapRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(MainUiState())
+    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            bootstrapRepository.bootstrapState.collect { state ->
+                when (state) {
+                    is BootstrapState.Seeding -> _uiState.update { it.copy(isLoading = true) }
+                    is BootstrapState.Ready -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        loadStats()
                     }
-                    IconButton(onClick = { /* Toggle offline mode */ }) {
-                        Icon(
-                            Icons.Default.CloudOff,
-                            contentDescription = "Modo offline",
-                            tint = VespaOnSurfaceMid
-                        )
-                    }
-                }
-            )
-        },
-        containerColor = VespaBackground
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Card de estado del corpus
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = VespaSurface),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Corpus v${uiState.corpusVersion}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = VespaOnSurface
-                            )
-                            if (uiState.pendientesInvestigador > 0) {
-                                Text(
-                                    text = "${uiState.pendientesInvestigador} pendientes",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = VespaWarning
-                                )
-                            }
-                        }
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = VespaSuccess,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-
-            // Botones Simulador y Diagnóstico
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = onNavigateToSimulator,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Simulador")
-                    }
-                    Button(
-                        onClick = onNavigateToDiagnosis,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Diagnóstico")
-                    }
-                }
-            }
-
-            // Campo de búsqueda con ícono de enviar
-            item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Consulta al motor experto...", color = VespaOnSurfaceLow) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = VespaOutline,
-                        unfocusedBorderColor = VespaOutline,
-                        focusedTextColor = VespaOnSurface,
-                        unfocusedTextColor = VespaOnSurface
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = { /* Buscar */ }) {
-                            Icon(
-                                Icons.Default.Send,
-                                contentDescription = "Enviar",
-                                tint = VespaOnSurfaceMid
-                            )
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            // Botón Investigador
-            item {
-                OutlinedButton(
-                    onClick = onNavigateToInvestigator,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = VespaOnSurface)
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Investigador")
-                }
-            }
-
-            // Sección de resultados recientes
-            if (uiState.recientes.isNotEmpty()) {
-                item {
-                    Text(
-                        "Resultados Recientes",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = VespaOnSurfaceMid
-                    )
-                }
-                items(uiState.recientes) { session ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = VespaSurface),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(modifier = Modifier.padding(16.dp)) {
-                            Text("Sesión · ${session.modulo}", color = VespaOnSurface)
-                        }
-                    }
+                    is BootstrapState.Error -> _uiState.update { it.copy(isLoading = false) }
+                    else -> Unit
                 }
             }
         }
+        loadStats()
+    }
+
+    private fun loadStats() {
+        viewModelScope.launch {
+            try {
+                val stats = adaptiveRepository.getOverallStats()
+                _uiState.update {
+                    it.copy(
+                        progresoGeneral = (stats.precisionGeneral * 100).toInt(),
+                        brechasDetectadas = stats.brechasActivas,
+                        sesionesCompletadas = stats.totalSesiones,
+                        subtemasDominados = stats.subtemasDominados,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+
+        viewModelScope.launch {
+            adaptiveRepository.observeRecentSessions(5).collect { sessions ->
+                _uiState.update { state ->
+                    state.copy(recientes = sessions.map { s -> 
+                        SessionSummary(it.id, it.correctos, it.totalReactivos, it.modulo) 
+                    })
+                }
+            }
+        }
+    }
+
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true) }
+        loadStats()
     }
 }

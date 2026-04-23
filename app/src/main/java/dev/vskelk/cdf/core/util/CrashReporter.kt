@@ -1,6 +1,7 @@
 package dev.vskelk.cdf.core.util
 
 import android.content.Context
+import android.os.Environment
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
@@ -14,14 +15,15 @@ class CrashReporter(private val context: Context) : Thread.UncaughtExceptionHand
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
         try {
-            // Generar el nombre del archivo con la fecha y hora exacta del putazo
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val fileName = "crash_vespa_$timeStamp.txt"
             
-            // Lo guardamos en una ruta que puedes ver con el explorador de archivos de tu cel
-            val dir = context.getExternalFilesDir(null)
-            if (dir != null) {
-                val file = File(dir, fileName)
+            // ⚡ REDIRECCIÓN A CARPETA PÚBLICA DE DESCARGAS (DOWNLOADS)
+            // Esta ruta es accesible para cualquier explorador de archivos sin restricciones de sistema.
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            
+            if (downloadsDir != null) {
+                val file = File(downloadsDir, fileName)
                 val writer = PrintWriter(FileWriter(file))
                 
                 writer.println("=== VESPA FATAL CRASH REPORT ===")
@@ -35,9 +37,9 @@ class CrashReporter(private val context: Context) : Thread.UncaughtExceptionHand
                 writer.close()
             }
         } catch (e: Exception) {
-            // Si falla guardando el archivo, nos la pelamos, pero no detenemos el crash
+            // Si falla el guardado por permisos de escritura, el crash original sigue su curso
         } finally {
-            // Le pasamos la bolita al sistema para que cierre la app
+            // Le pasamos el control al sistema para que cierre la app
             defaultHandler?.uncaughtException(thread, exception) ?: exitProcess(1)
         }
     }

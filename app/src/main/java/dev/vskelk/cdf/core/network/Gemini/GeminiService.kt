@@ -49,10 +49,22 @@ class GeminiService @Inject constructor() {
                 )
             }
 
-            parts.add(GeminiPart(text = prompt))
+            val fullPrompt = buildString {
+                append(prompt)
+                append("\n\n---\n")
+                append("Instrucciones adicionales:\n")
+                append("- Analiza el documento página por página como imágenes.\n")
+                append("- Extrae tablas y datos estructurados con precisión.\n")
+                append("- Responde en formato JSON válido.\n")
+                append("- No incluyas markdown ni comentarios fuera del JSON.")
+            }
+
+            parts.add(GeminiPart(text = fullPrompt))
 
             val requestBody = GeminiRequest(
-                contents = listOf(GeminiContent(parts = parts)),
+                contents = listOf(
+                    GeminiContent(parts = parts)
+                ),
                 generationConfig = GenerationConfig(
                     maxOutputTokens = 8192,
                     temperature = 0.2f,
@@ -77,9 +89,18 @@ class GeminiService @Inject constructor() {
             val body = response.body?.string() ?: return@withContext Result.failure(Exception("Respuesta vacía"))
             val geminiResponse = gson.fromJson(body, GeminiResponse::class.java)
 
-            val text = geminiResponse.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            if (text != null) Result.success(text)
-            else Result.failure(Exception("Gemini regresó una respuesta vacía"))
+            val text = geminiResponse.candidates
+                ?.firstOrNull()
+                ?.content
+                ?.parts
+                ?.firstOrNull()
+                ?.text
+
+            if (text != null) {
+                Result.success(text)
+            } else {
+                Result.failure(Exception("Gemini regresó una respuesta vacía"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -109,11 +130,21 @@ class GeminiService @Inject constructor() {
                 )
             }
 
-            val fullPrompt = "Responde ÚNICAMENTE con un objeto JSON válido. No incluyas explicaciones ni markdown.\n\n$prompt"
+            val fullPrompt = buildString {
+                append("Responde ÚNICAMENTE con un objeto JSON válido. No incluyas explicaciones ni markdown.\n\n")
+                append(prompt)
+                if (pdfBytes != null) {
+                    append("\n\nAnaliza el documento PDF página por página como imágenes.")
+                    append("\nPresta especial atención a las tablas y datos estructurados.")
+                }
+            }
+
             parts.add(GeminiPart(text = fullPrompt))
 
             val requestBody = GeminiRequest(
-                contents = listOf(GeminiContent(parts = parts)),
+                contents = listOf(
+                    GeminiContent(parts = parts)
+                ),
                 generationConfig = GenerationConfig(
                     maxOutputTokens = 8192,
                     temperature = 0.1f,
@@ -121,7 +152,11 @@ class GeminiService @Inject constructor() {
                     topP = 1.0f
                 ),
                 systemInstruction = GeminiContent(
-                    parts = listOf(GeminiPart(text = "Eres un asistente especializado en extraer información estructurada. Responde SOLO con JSON válido."))
+                    parts = listOf(
+                        GeminiPart(
+                            text = "Eres un asistente especializado en extraer información estructurada. Responde SOLO con JSON válido."
+                        )
+                    )
                 )
             )
 
@@ -141,41 +176,65 @@ class GeminiService @Inject constructor() {
             val body = response.body?.string() ?: return@withContext Result.failure(Exception("Respuesta vacía"))
             val geminiResponse = gson.fromJson(body, GeminiResponse::class.java)
 
-            val text = geminiResponse.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            if (text != null) Result.success(text)
-            else Result.failure(Exception("Gemini regresó una respuesta vacía"))
+            val text = geminiResponse.candidates
+                ?.firstOrNull()
+                ?.content
+                ?.parts
+                ?.firstOrNull()
+                ?.text
+
+            if (text != null) {
+                Result.success(text)
+            } else {
+                Result.failure(Exception("Gemini regresó una respuesta vacía"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+    suspend fun isApiAvailable(apiKey: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val result = generateWithVision(apiKey, "test", null)
+            result.isSuccess
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // Data classes para la API de Gemini
+    data class GeminiRequest(
+        val contents: List<GeminiContent>,
+        val generationConfig: GenerationConfig,
+        val systemInstruction: GeminiContent? = null
+    )
+
+    data class GeminiContent(
+        val parts: List<GeminiPart>
+    )
+
+    data class GeminiPart(
+        val text: String? = null,
+        val inlineData: InlineData? = null
+    )
+
+    data class InlineData(
+        val mimeType: String,
+        val data: String
+    )
+
+    data class GenerationConfig(
+        val maxOutputTokens: Int,
+        val temperature: Float,
+        val topK: Int,
+        val topP: Float
+    )
+
+    data class GeminiResponse(
+        val candidates: List<GeminiCandidate>?
+    )
+
+    data class GeminiCandidate(
+        val content: GeminiContent?
+    )
 }
-
-// Data classes
-data class GeminiRequest(
-    val contents: List<GeminiContent>,
-    val generationConfig: GenerationConfig,
-    val systemInstruction: GeminiContent? = null
-)
-
-data class GeminiContent(val parts: List<GeminiPart>)
-
-data class GeminiPart(
-    val text: String? = null,
-    val inlineData: InlineData? = null
-)
-
-data class InlineData(
-    val mimeType: String,
-    val data: String
-)
-
-data class GenerationConfig(
-    val maxOutputTokens: Int,
-    val temperature: Float,
-    val topK: Int,
-    val topP: Float
-)
-
-data class GeminiResponse(val candidates: List<GeminiCandidate>?)
-
-data class GeminiCandidate(val content: GeminiContent?)
